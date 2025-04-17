@@ -5,18 +5,22 @@ function SongDetails({ song }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (song) {
-      fetch(`https://api.lyrics.ovh/v1/${song.artist.name}/${song.title}`)
-        .then(res => res.json())
-        .then(data => {
-          setLyrics(data.lyrics || 'Paroles non trouvées.');
-          setLoading(false);
-        })
-        .catch(() => {
-          setLyrics('Erreur lors du chargement des paroles.');
-          setLoading(false);
-        });
-    }
+    if (!song) return;
+
+    const fetchLyrics = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`https://api.lyrics.ovh/v1/${song.artist.name}/${song.title}`);
+        const data = await res.json();
+        setLyrics(data.lyrics || "Paroles non trouvées.");
+      } catch {
+        setLyrics("Erreur lors du chargement des paroles.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLyrics();
   }, [song]);
 
   if (!song) return null;
@@ -26,6 +30,7 @@ function SongDetails({ song }) {
       <h2>{song.title}</h2>
       <h3>Artiste : {song.artist.name}</h3>
       <h4>Album : {song.album.title}</h4>
+      <img src={song.album.cover_medium} alt="Album" />
       {loading ? <p>Chargement des paroles...</p> : <pre>{lyrics}</pre>}
     </div>
   );
